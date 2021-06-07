@@ -1,14 +1,5 @@
 #include "vm/mmu.h"
 
-#define ADDR_L0_TABLE 0x0
-#define ADDR_L1_TABLE 0x1000
-
-#define L0_ENTRY (ADDR_L1_TABLE | BOOT_PGD_ATTR)
-
-#define L1_ENTRY_RAM_GPU_PERIF (0x00000000 | BOOT_PUD_ATTR)
-#define L1_ENTRY_ARM_PERIF (0x40000000 | BOOT_PUD_ATTR)
-
-
 .global mmu_init
 // We haven't setup stack, so be careful with stack memory
 mmu_init:
@@ -26,20 +17,47 @@ mmu_init:
     * Here we hard coded the table content
     */
     // L0 table with only one entry to the L1 table
-    ldr x0, =ADDR_L0_TABLE
+    ldr x0, =BOOT_ADDR_L0_TABLE
     ldr x1, =L0_ENTRY
     str x1, [x0]
 
     // L1 table with two entries
-    ldr x0, =ADDR_L1_TABLE
-    ldr x1, =L1_ENTRY_RAM_GPU_PERIF
+    ldr x0, =BOOT_ADDR_L1_TABLE
+    ldr x1, =L1_ENTRY_SUB_TABLE
     str x1, [x0]
     ldr x2, =L1_ENTRY_ARM_PERIF
     str x2, [x0, 8]
 
+    // L2 table
+fill_first_1G_table:
+    ldr x5, =BOOT_PD_BLOCK_DEV
+    ldr x6, =BOOT_PD_BLOCK_NORMAL
+    ldr x10,=LOWER_1G_PERIF_START
+    ldr x0, =BOOT_ADDR_L2_TABLE
+    mov x1, #0  // address of mapped memory
+    mov x2, #512 // number of entries remains
+
+    set_entry:
+        cbz x2, fill_table_end
+        cmp x1, x10
+        blt set_entry_normal
+        set_entry_device:
+            orr x3, x1, x5
+            b set_entry_end
+        set_entry_normal:
+            orr x3, x1, x6
+            b set_entry_end
+    set_entry_end:
+        str x3,[x0]
+        add x0, x0, #8 // each entry take 8 bytes space
+        sub x2, x2, #1
+        add x1, x1, #0x200000 //each entry specify 2M addres
+        b set_entry
+fill_table_end:
+
     // Point to our page table
     // Use the same page table for both lower/higher VA region
-    ldr x0, =ADDR_L0_TABLE
+    ldr x0, =BOOT_ADDR_L0_TABLE
     msr ttbr0_el1, x0
     msr ttbr1_el1, x0
     isb
@@ -57,5 +75,3 @@ mmu_init:
     // Address that are supposed to be linked to
     // mmu_init_finished: defined in entry.S
     b mmu_init_finished
-
-
