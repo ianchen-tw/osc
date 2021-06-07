@@ -4,7 +4,7 @@
 #define ADDR_L1_TABLE 0x1000
 
 void mmu_lower_init() {
-  // Covenient to debug by aborting lower VA region
+  // Convinent to debug by aborting lower VA region
   asm volatile("msr ttbr0_el1, %0\n" ::"r"(-1));
 }
 
@@ -37,18 +37,18 @@ void mmu_init() {
 
   // Enable MMU
   asm volatile("\
-		mrs x2, sctlr_el1\n\
-		orr x2 , x2, %0\n\
-		msr sctlr_el1, x2\n\
+    mrs x2, sctlr_el1\n\
+    orr x2 , x2, %0\n\
+    msr sctlr_el1, x2\n\
     ISB \n\
-	" ::"r"(STCLR_CONFIG_MMU_ENABLE));
+  " ::"r"(STCLR_CONFIG_MMU_ENABLE));
 
   // The entire kernel code is linked to the higher memory region
   // However, the bootloader would load our kernel at 0x80000
   // After enabling the MMU, we're officially running in the
   // Address that are supposed to be linked to
   asm volatile("\
-		ldr x0, =0xffff000000000000\n\
-		add x30, x30, x0\n\
-	" ::);
+    ldr x0, =0xffff000000000000\n\
+    add x30, x30, x0\n\
+  " ::);
 }

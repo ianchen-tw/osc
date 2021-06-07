@@ -82,8 +82,8 @@ _start:
     msr vbar_el1, x0
 
     //MMU init
-	bl mmu_init
-	bl mmu_lower_init
+    bl mmu_init
+    bl mmu_lower_init
 
     // Initialize stack pointer: set to __stack_top
     ldr x0, = __stack_top
