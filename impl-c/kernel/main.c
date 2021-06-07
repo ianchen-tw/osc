@@ -99,6 +99,8 @@ void main() {
   run_tests();
 #endif
 
+  FATAL("STOP HERE");
+
   vfs_init();
   register_filesystem(&tmpfs);
   register_filesystem(&fat);

@@ -1,3 +1,4 @@
 #pragma once
 
-#define MMIO_BASE 0x3F000000
+#define KVA 0xffff000000000000
+#define MMIO_BASE (KVA + 0x3F000000)

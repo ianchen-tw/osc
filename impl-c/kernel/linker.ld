@@ -1,12 +1,14 @@
 SECTIONS
 {
   /*
+    0xffff000000000000 is the Start of our kernel virtual address after enabling MMU.
     0x80000 is the default address where the kernel image would be loaded into memory
     (for 64bit machine), this address could be modified by varaible `kernel_address` in config.txt
     see: https://www.raspberrypi.org/documentation/configuration/config-txt/boot.md
     for more information
   */
-  . = 0x80000;
+  . = 0xffff000000000000;
+  . += 0x80000;
   __kernel_start = .;
   .text :
   {
