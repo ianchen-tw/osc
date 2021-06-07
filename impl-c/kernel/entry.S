@@ -60,6 +60,7 @@
 lr .req x30
 
 .global _start
+.global mmu_init_finished
 
 _start:
     // Get cpuid
@@ -81,9 +82,9 @@ _start:
     ldr x0, =exception_vector_table
     msr vbar_el1, x0
 
-    //MMU init
-    bl mmu_init
-    bl mmu_lower_init
+    //MMU init (vm/mmu_init.S)
+    b mmu_init
+    mmu_init_finished:
 
     // Initialize stack pointer: set to __stack_top
     ldr x0, = __stack_top

@@ -1,6 +1,7 @@
 // D7.2 Gernal system control registers
-
+// Only declare constansts
 #pragma once
+
 /**
  * TCR: Translation Control Register, which controls
  *  1. (IPS) Intermediate Physical Address Size (32/36/40/42/44/48 bits)
@@ -56,3 +57,8 @@
 #define PD_ACCESS (1 << 10)
 #define BOOT_PGD_ATTR PD_TABLE
 #define BOOT_PUD_ATTR (PD_ACCESS | (MAIR_IDX_DEVICE_nGnRnE << 2) | PD_BLOCK)
+
+#ifndef __ASSEMBLER__
+// Only use for C files
+
+#endif
