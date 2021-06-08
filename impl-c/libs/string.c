@@ -73,7 +73,7 @@ const char *ignore_leading(const char *s, const char c) {
 // Caution:
 //  1. Copy the string returned if you need to store result
 //  2. Only pass in positive values
-char *itoa(int64_t val, int base) {
+char *itoa(uint64_t val, int base) {
   static char buf[64] = {0};
   int i = 62;
   if (val == 0) {

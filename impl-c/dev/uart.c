@@ -141,6 +141,7 @@ void uart_println(char *fmt, ...) {
   int64_t i;
   char *s;
   char c;
+  uint64_t ui;
 
   va_list arg;
   va_start(arg, fmt);
@@ -163,9 +164,9 @@ void uart_println(char *fmt, ...) {
       uart_puts(itoa(i, 10));
       break;
     case 'x':
-      i = va_arg(arg, int);
+      ui = va_arg(arg, uint64_t);
       uart_puts("0x");
-      uart_puts(itoa((int64_t)i, 16));
+      uart_puts(itoa((uint64_t)ui, 16));
       break;
     case 'c':
       c = va_arg(arg, int);
