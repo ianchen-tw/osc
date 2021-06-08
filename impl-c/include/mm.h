@@ -26,10 +26,10 @@ typedef struct AllocationManager {
 // because their lifetimes is equal to the system itself
 extern struct Frame Frames[1 << BUDDY_MAX_EXPONENT];
 
-// Allocate a  memory space to use in kernel space
+// Allocate a block of memory to use in kernel space (KVA)
 void *kalloc(int size);
 
-// Free a memory space
+// Free a memory block (KVA)
 void kfree(void *addr);
 
 // Initialize dynamic memory allocator

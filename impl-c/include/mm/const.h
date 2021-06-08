@@ -1,4 +1,5 @@
 #pragma once
+#include "vm/vm.h"
 
 #define SLAB_NUM_SLAB_SIZES 6
 
@@ -8,8 +9,7 @@
 
 #define BUDDY_NUM_FREE_LISTS (BUDDY_MAX_EXPONENT + 1)
 
-// #define MEMORY_START 0x90000
-#define MEMORY_START 0x0
+#define MEMORY_START KVA_START
 
 // SlabAllocator
 //    manage slabs with the same allocation size,

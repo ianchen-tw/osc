@@ -10,13 +10,14 @@
 #include "shell/shell.h"
 #include "test.h"
 #include "uart.h"
+#include "vm/vm.h"
 
 #include "string.h"
 
 #define ANSI_GREEN(s) ("\033[0;32m" s "\033[0m")
 
 #define MX_CMD_BFRSIZE 64
-extern unsigned char __kernel_start, __kernel_end;
+extern char __kernel_start, __kernel_end;
 
 static void init_sys(char *name, void (*func)(void));
 static inline void run_shell();
@@ -131,13 +132,19 @@ void init_sys(char *name, void (*func)(void)) {
 
 void reserve_startup_area() {
   // Kernel
-  startup_reserve((void *)0x0, 0x1000);      // spin table
-  startup_reserve((void *)0x60000, 0x20000); // stack
-  startup_reserve((void *)(&__kernel_start),
+  // startup_reserve((void *)pa_to_kva(0x0), 0x1000); // spin table
+  startup_reserve((void *)pa_to_kva(0x0),
+                  0x3000); // Kernel page table (identity map)
+  startup_reserve((void *)pa_to_kva(0x60000), 0x20000); // stack
+
+  // TODO: figure this out
+  // Starnge: It seems that &__kernel_start is always 0x80000 no matter where we
+  // linked it to
+  startup_reserve((void *)pa_to_kva(&__kernel_start),
                   (&__kernel_end - &__kernel_start)); // kernel
   // startup_reserve((void *)(&kn_end), mem_size / PAGE_SIZE);    // buddy
   // System
-  startup_reserve((void *)0x3f000000, 0x1000000); // MMIO
+  startup_reserve((void *)pa_to_kva(0x3f000000), 0x1000000); // MMIO
 }
 
 void run_shell() {

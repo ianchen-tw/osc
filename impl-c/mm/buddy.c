@@ -191,7 +191,7 @@ void buddy_init_reserved(BuddyAllocater *alloc, StartupAllocator_t *sa) {
   for (int i = 0; i < sa->num_reserved; i++) {
     reg.addr = sa->_reserved[i].addr;
     reg.size = sa->_reserved[i].size;
-    uart_println("reserved: %d, %d", reg.addr, reg.size);
+    uart_println("reserved: %x, %x", reg.addr, reg.size);
   }
 #endif
 
@@ -238,7 +238,8 @@ void buddy_init(BuddyAllocater *alloc, StartupAllocator_t *sa,
   for (int i = 0; i < (1 << BUDDY_MAX_EXPONENT); i++) {
     alloc->frames[i].arr_index = i;
     alloc->frames[i].exp = -1;
-    alloc->frames[i].addr = (void *)(((long)i << FRAME_SHIFT) + MEMORY_START);
+    alloc->frames[i].addr =
+        (void *)(((uintptr_t)i << FRAME_SHIFT) + MEMORY_START);
     alloc->frames[i].list_base.next = NULL;
     alloc->frames[i].list_base.prev = NULL;
   }
