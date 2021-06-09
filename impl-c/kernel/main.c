@@ -4,13 +4,13 @@
 #include "fs/fat.h"
 #include "fs/tmpfs.h"
 #include "fs/vfs.h"
-#include "mm.h"
+#include "memory.h"
 #include "mm/startup.h"
+#include "mm/vm.h"
 #include "proc.h"
 #include "shell/shell.h"
 #include "test.h"
 #include "uart.h"
-#include "vm/vm.h"
 
 #include "string.h"
 

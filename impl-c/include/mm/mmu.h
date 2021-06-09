@@ -61,6 +61,7 @@
 #define PD_TYPE_TABLE 0b11
 #define PD_TYPE_BLOCK 0b01
 #define PD_TYPE_INVALID 0b00
+#define MASK_PD_TYPE 0b11
 
 // PD_ATTR
 #define PD_ATTR_ACCESS (1 << 10)
@@ -103,6 +104,6 @@
 #define LOWER_1G_PERIF_START 0x3F000000
 
 #ifndef __ASSEMBLER__
-// Only use for C files
+// Only inlcude for C files
 
 #endif

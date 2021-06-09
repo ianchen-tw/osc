@@ -12,3 +12,8 @@
 #define pa_to_kva(addr) (0xffff000000000000 | (uint64_t)addr)
 
 #define KVA_START 0xffff000000000000
+
+#ifndef __ASSEMBLER__
+// Only inlcude for C files
+
+#endif

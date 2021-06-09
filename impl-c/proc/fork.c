@@ -3,7 +3,7 @@
 
 #include "bool.h"
 #include "fs/vfs.h"
-#include "mm.h"
+#include "memory.h"
 #include "mm/frame.h"
 #include "string.h"
 #include "syscall.h"

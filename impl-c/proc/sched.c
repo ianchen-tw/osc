@@ -2,7 +2,7 @@
 #include "proc/task.h"
 
 #include "list.h"
-#include "mm.h"
+#include "memory.h"
 #include "uart.h"
 
 #include "config.h"

@@ -1,10 +1,10 @@
+#include "mm/alloc.h"
+#include "mm/startup.h"
+
 #include "bool.h"
 #include "config.h"
 #include "list.h"
 #include "log.h"
-#include "mm.h"
-#include "mm/alloc.h"
-#include "mm/startup.h"
 #include "uart.h"
 #include <stddef.h>
 

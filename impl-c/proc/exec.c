@@ -3,7 +3,7 @@
 #include "proc/task.h"
 
 #include "dev/cpio.h"
-#include "mm.h"
+#include "memory.h"
 #include "mm/frame.h"
 #include "stddef.h"
 #include "stdint.h"

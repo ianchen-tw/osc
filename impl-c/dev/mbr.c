@@ -1,7 +1,7 @@
 #include "dev/mbr.h"
 
 #include "dev/sd.h"
-#include "mm.h"
+#include "memory.h"
 #include "stdint.h"
 #include "uart.h"
 

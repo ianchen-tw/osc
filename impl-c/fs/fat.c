@@ -5,8 +5,8 @@
 #include "dev/sd.h"
 
 #include "fatal.h"
+#include "memory.h"
 #include "minmax.h"
-#include "mm.h"
 #include "stdint.h"
 #include "string.h"
 #include "uart.h"

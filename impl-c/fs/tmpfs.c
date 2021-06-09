@@ -2,8 +2,8 @@
 #include "fs/vfs.h"
 
 #include "dev/cpio.h"
+#include "memory.h"
 #include "minmax.h"
-#include "mm.h"
 #include "stdint.h"
 #include "string.h"
 #include "uart.h"

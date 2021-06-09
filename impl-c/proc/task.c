@@ -7,7 +7,7 @@
 #include "bool.h"
 #include "fs/vfs.h"
 #include "list.h"
-#include "mm.h"
+#include "memory.h"
 #include "mm/frame.h"
 #include "string.h"
 #include "syscall.h"
@@ -199,6 +199,20 @@ void task_start_user() {
   exec_user(name, args);
 }
 
+// This function should be runned as a kernel task
+void task_get_pid() {
+  uart_println("enter user startup");
+  char *name = "./get_pid.out";
+  char *args[4] = {"./get_pid.out", NULL};
+
+  // Launch a user program thread (in el0) with this kernel thread
+  //
+  // Eversince this point, exceptions under el0 would be trap
+  // to the context of this kernel thread
+  // (Since we would call `eret` under this kernel thread)
+  exec_user(name, args);
+}
+
 void test_user_io() {
   char *name = "./file.out";
   char *args[4] = {"./file.out", NULL};
@@ -214,10 +228,11 @@ void test_tasks() {
 
   // create a task to bootup the very first user program
   // task_create(task_start_user);
-  task_create(test_user_io);
+  // task_create(test_user_io);
+  task_create(task_get_pid);
 
   task_create(foo);
-  // task_create(foo);
+  task_create(foo);
   // task_create(foo);
 #ifdef CFG_LOG_PROC_SCHED
   _dump_runq();
