@@ -1,4 +1,9 @@
 #include "vm/mmu.h"
+#include "vm/vm.h"
+
+// Define a section near the kernel entrypoint makes it
+// easier to debug..
+.section ".text.mmu_init"
 
 .global mmu_init
 // We haven't setup stack, so be careful with stack memory
@@ -74,4 +79,6 @@ fill_table_end:
     // After enabling the MMU, we're officially running in the
     // Address that are supposed to be linked to
     // mmu_init_finished: defined in entry.S
-    b mmu_init_finished
+    ldr x0 ,=KVA_START
+    add x30, x30, x0
+    ret

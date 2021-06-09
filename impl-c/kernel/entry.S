@@ -60,7 +60,6 @@
 lr .req x30
 
 .global _start
-.global mmu_init_finished
 
 _start:
     // Get cpuid
@@ -83,8 +82,7 @@ _start:
     msr vbar_el1, x0
 
     //MMU init (vm/mmu_init.S)
-    b mmu_init
-    mmu_init_finished:
+    bl mmu_init
 
     // Initialize stack pointer: set to __stack_top
     ldr x0, = __stack_top

@@ -12,7 +12,7 @@ SECTIONS
   __kernel_start = .;
   .text :
   {
-    KEEP(*(.text.boot)) *(.text)
+    KEEP(*(.text.boot)) KEEP(*(.text.mmu_init)) *(.text)
   }
   .rodata :
   {

@@ -137,13 +137,8 @@ void reserve_startup_area() {
                   0x3000); // Kernel page table (identity map)
   startup_reserve((void *)pa_to_kva(0x60000), 0x20000); // stack
 
-  // TODO: figure this out
-  // Starnge: It seems that &__kernel_start is always 0x80000 no matter where we
-  // linked it to
-  startup_reserve((void *)pa_to_kva(&__kernel_start),
-                  (&__kernel_end - &__kernel_start)); // kernel
-  // startup_reserve((void *)(&kn_end), mem_size / PAGE_SIZE);    // buddy
-  // System
+  startup_reserve((void *)&__kernel_start,
+                  (&__kernel_end - &__kernel_start));        // kernel
   startup_reserve((void *)pa_to_kva(0x3f000000), 0x1000000); // MMIO
 }
 
