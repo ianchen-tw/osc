@@ -5,10 +5,12 @@
 #include "proc/sched.h"
 
 #include "bool.h"
+#include "fatal.h"
 #include "fs/vfs.h"
 #include "list.h"
 #include "memory.h"
 #include "mm/frame.h"
+#include "mm/vm.h"
 #include "string.h"
 #include "syscall.h"
 #include "timer.h"
@@ -43,8 +45,6 @@ struct task_struct *task_create(void *func) {
   t->kernel_stack = (uintptr_t)kalloc(FRAME_SIZE);
 
   // Normal task is a kernel function, which has already been loaded to memory
-  t->code = NULL;
-  t->code_size = 0;
   t->cpu_context.fp = t->kernel_stack + FRAME_SIZE;
   t->cpu_context.lr = (uint64_t)func;
   t->cpu_context.sp = t->kernel_stack + FRAME_SIZE;
@@ -59,6 +59,9 @@ struct task_struct *task_create(void *func) {
   // A task would only bind to a user thread if called with exec_user
   t->user_stack = (uintptr_t)(NULL);
   t->user_sp = (uintptr_t)(NULL);
+  uint64_t pgd;
+  asm volatile("mrs %0, ttbr0_el1" : "=r"(pgd));
+  t->page_table = (void *)pgd;
 
   struct task_entry *entry =
       (struct task_entry *)kalloc(sizeof(struct task_entry));
@@ -76,9 +79,12 @@ void task_free(struct task_struct *task) {
   // if (task->code) {
   //   kfree(task->code);
   // }
-  if (task->user_stack) {
-    kfree((void *)task->user_stack);
-  }
+
+  // TODO: Free page table
+  // if (task->user_stack) {
+  //   kfree((void *)task->user_stack);
+  // }
+
   kfree((void *)task->kernel_stack);
 
   // Close all file descriptors
@@ -168,7 +174,8 @@ int sys_read(int fd, void *buf, int count) {
 void sys_exit() { cur_task_exit(); }
 
 void cur_task_exit() {
-  // Mark current thread as exited, which would be picked up by the idle thread
+  // Mark current thread as exited, which would be picked up by the idle
+  // thread
   struct task_struct *task = get_current();
   task->status = TASK_STATUS_DEAD;
   log_println("[task] exit called: %d", task->id);
@@ -179,7 +186,7 @@ void foo() {
   struct task_struct *task = get_current();
   for (int i = 0; i < 2; ++i) {
     uart_println("Thread id: %d -> loop:%d", task->id, i);
-    _wait();
+    // _wait();
     task_schedule();
   }
   cur_task_exit();
@@ -203,7 +210,7 @@ void task_start_user() {
 void task_get_pid() {
   uart_println("enter user startup");
   char *name = "./get_pid.out";
-  char *args[4] = {"./get_pid.out", NULL};
+  char *args[] = {"./get_pid.out", NULL};
 
   // Launch a user program thread (in el0) with this kernel thread
   //
@@ -232,7 +239,7 @@ void test_tasks() {
   task_create(task_get_pid);
 
   task_create(foo);
-  task_create(foo);
+  // task_create(foo);
   // task_create(foo);
 #ifdef CFG_LOG_PROC_SCHED
   _dump_runq();

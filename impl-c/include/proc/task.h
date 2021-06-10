@@ -1,4 +1,5 @@
 #pragma once
+#include "const.h"
 #include "fs/vfs.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -6,6 +7,9 @@
 #define TASK_STATUS_DEAD 0
 #define TASK_STATUS_ALIVE 1
 #define TASK_MX_NUM_FD 10
+
+#define DEFAULT_USPACE_LOAD_ADDR 0x80000
+#define USPACE_MEM_TOP CONST_1G
 
 struct cpu_context {
   uint64_t x19;
@@ -31,13 +35,14 @@ struct task_struct {
   int fd_size;
   struct file *fd[TASK_MX_NUM_FD];
 
+  void *page_table;
   uintptr_t kernel_stack;
   uintptr_t user_stack;
   uintptr_t user_sp; // value of sp in el0
 
   // address of the program code allocaed in memory
-  void *code;
-  size_t code_size;
+  // void *code;
+  // size_t code_size;
 };
 
 struct task_struct *task_create(void *func);
@@ -49,7 +54,7 @@ void cur_task_exit();
 extern uint32_t new_tid;
 
 static inline void _wait() {
-  for (uint64_t j = 0; j < (1 << 27); j++) {
+  for (uint64_t j = 0; j < (1 << 23); j++) {
     ;
   }
 }

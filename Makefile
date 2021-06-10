@@ -100,6 +100,8 @@ user_programs:
 define _run_qemu_base
 	$(QEMU) -M raspi3 \
 	-drive if=sd,file=./res/sdcard/sfn_nctuos.img,format=raw \
+	-initrd $(INIT_RAM_FS) \
+	-d int\
 	-display none
 endef
 

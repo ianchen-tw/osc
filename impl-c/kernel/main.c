@@ -99,8 +99,7 @@ void main() {
 #ifdef CFG_RUN_TEST
   run_tests();
 #endif
-
-  FATAL("STOP HERE");
+  // FATAL("TEST FINISHED");
 
   vfs_init();
   register_filesystem(&tmpfs);
@@ -108,15 +107,17 @@ void main() {
   mount_root_fs("tmpfs");
 
   // mount SD card to our filesystem tree
-  struct vnode *sdcard_root = NULL;
-  vfs_find_vnode("/dev", true);
-  sdcard_root = vfs_find_vnode("/dev/sdcard", true);
-  if (0 != mount(sdcard_root, "fat32")) {
-    FATAL("Could not mount sd card");
-  }
+  // struct vnode *sdcard_root = NULL;
+  // vfs_find_vnode("/dev", true);
+  // sdcard_root = vfs_find_vnode("/dev/sdcard", true);
+  // if (0 != mount(sdcard_root, "fat32")) {
+  //   FATAL("Could not mount sd card");
+  // }
 
-  tmpfs_lab7_demo();
-  fat_lab8_demo();
+  // tmpfs_lab7_demo();
+  // FATAL("STOP HERE");
+
+  // fat_lab8_demo();
   // FATAL("Done");
 
   test_tasks();

@@ -61,11 +61,17 @@
 #define PD_TYPE_TABLE 0b11
 #define PD_TYPE_BLOCK 0b01
 #define PD_TYPE_INVALID 0b00
+#define PD_TYPE_PAGE 0b11
+
 #define MASK_PD_TYPE 0b11
 
 // PD_ATTR
 #define PD_ATTR_ACCESS (1 << 10)
 #define PD_ATTR_MAIR(MAIR_IDX) (MAIR_IDX << 2)
+#define PD_ATTR_RO (1 << 7)
+#define PD_ATTR_RW (0 << 7)
+#define PD_ATTR_KERNEL (0 << 6)
+#define PD_ATTR_USER (1 << 6)
 
 // Base schema for page descriptors
 
@@ -77,6 +83,15 @@
 // Block descriptor for normal memory
 #define BOOT_PD_BLOCK_NORMAL                                                   \
   (PD_ATTR_ACCESS | PD_ATTR_MAIR(MAIR_NORMAL_NOCACHE) | PD_TYPE_BLOCK)
+
+#define MAP_TYPE_USER_CODE 1
+#define MAP_TYPE_USER_MEM 2
+#define USER_ATTR_CODE                                                         \
+  (PD_ATTR_ACCESS | PD_ATTR_MAIR(MAIR_NORMAL_NOCACHE) | PD_ATTR_RO |           \
+   PD_ATTR_USER | PD_TYPE_PAGE)
+#define USER_ATTR_STACK                                                        \
+  (PD_ATTR_ACCESS | PD_ATTR_MAIR(MAIR_NORMAL_NOCACHE) | PD_ATTR_RW |           \
+   PD_ATTR_USER | PD_TYPE_PAGE)
 
 /**
  * Boot Page table config

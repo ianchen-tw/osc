@@ -1,5 +1,5 @@
-#include "vm/mmu.h"
-#include "vm/vm.h"
+#include "mm/mmu.h"
+#include "mm/vm.h"
 
 // Define a section near the kernel entrypoint makes it
 // easier to debug..

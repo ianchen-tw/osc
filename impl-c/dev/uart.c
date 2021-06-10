@@ -188,6 +188,8 @@ void uart_println(char *fmt, ...) {
 // same as println, but without a newline at the end
 void uart_printf(char *fmt, ...) {
   int64_t i;
+  uint64_t ui;
+
   char *s;
   char c;
 
@@ -212,9 +214,9 @@ void uart_printf(char *fmt, ...) {
       uart_puts(itoa(i, 10));
       break;
     case 'x':
-      i = va_arg(arg, int);
+      ui = va_arg(arg, uint64_t);
       uart_puts("0x");
-      uart_puts(itoa((int64_t)i, 16));
+      uart_puts(itoa(ui, 16));
       break;
     case 'c':
       c = va_arg(arg, int);
