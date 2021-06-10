@@ -4,8 +4,9 @@
 #include "fs/fat.h"
 #include "fs/tmpfs.h"
 #include "fs/vfs.h"
-#include "mm.h"
+#include "memory.h"
 #include "mm/startup.h"
+#include "mm/vm.h"
 #include "proc.h"
 #include "shell/shell.h"
 #include "test.h"
@@ -16,7 +17,7 @@
 #define ANSI_GREEN(s) ("\033[0;32m" s "\033[0m")
 
 #define MX_CMD_BFRSIZE 64
-extern unsigned char __kernel_start, __kernel_end;
+extern char __kernel_start, __kernel_end;
 
 static void init_sys(char *name, void (*func)(void));
 static inline void run_shell();
@@ -98,6 +99,7 @@ void main() {
 #ifdef CFG_RUN_TEST
   run_tests();
 #endif
+  // FATAL("TEST FINISHED");
 
   vfs_init();
   register_filesystem(&tmpfs);
@@ -105,15 +107,17 @@ void main() {
   mount_root_fs("tmpfs");
 
   // mount SD card to our filesystem tree
-  struct vnode *sdcard_root = NULL;
-  vfs_find_vnode("/dev", true);
-  sdcard_root = vfs_find_vnode("/dev/sdcard", true);
-  if (0 != mount(sdcard_root, "fat32")) {
-    FATAL("Could not mount sd card");
-  }
+  // struct vnode *sdcard_root = NULL;
+  // vfs_find_vnode("/dev", true);
+  // sdcard_root = vfs_find_vnode("/dev/sdcard", true);
+  // if (0 != mount(sdcard_root, "fat32")) {
+  //   FATAL("Could not mount sd card");
+  // }
 
-  tmpfs_lab7_demo();
-  fat_lab8_demo();
+  // tmpfs_lab7_demo();
+  // FATAL("STOP HERE");
+
+  // fat_lab8_demo();
   // FATAL("Done");
 
   test_tasks();
@@ -129,13 +133,14 @@ void init_sys(char *name, void (*func)(void)) {
 
 void reserve_startup_area() {
   // Kernel
-  startup_reserve((void *)0x0, 0x1000);      // spin table
-  startup_reserve((void *)0x60000, 0x20000); // stack
-  startup_reserve((void *)(&__kernel_start),
-                  (&__kernel_end - &__kernel_start)); // kernel
-  // startup_reserve((void *)(&kn_end), mem_size / PAGE_SIZE);    // buddy
-  // System
-  startup_reserve((void *)0x3f000000, 0x1000000); // MMIO
+  // startup_reserve((void *)pa_to_kva(0x0), 0x1000); // spin table
+  startup_reserve((void *)pa_to_kva(0x0),
+                  0x3000); // Kernel page table (identity map)
+  startup_reserve((void *)pa_to_kva(0x60000), 0x20000); // stack
+
+  startup_reserve((void *)&__kernel_start,
+                  (&__kernel_end - &__kernel_start));        // kernel
+  startup_reserve((void *)pa_to_kva(0x3f000000), 0x1000000); // MMIO
 }
 
 void run_shell() {

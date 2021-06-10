@@ -81,6 +81,9 @@ _start:
     ldr x0, =exception_vector_table
     msr vbar_el1, x0
 
+    //MMU init (vm/mmu_init.S)
+    bl mmu_init
+
     // Initialize stack pointer: set to __stack_top
     ldr x0, = __stack_top
     mov sp, x0

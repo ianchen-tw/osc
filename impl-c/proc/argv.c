@@ -1,8 +1,9 @@
-#include "mm.h"
+#include "memory.h"
 #include "string.h"
 #include "uart.h"
 
 #include "config.h"
+#include "fatal.h"
 #include "log.h"
 #include "test.h"
 
@@ -25,27 +26,28 @@ static inline uintptr_t align_up(uintptr_t n, unsigned long align) {
  * @brief Place argv into user stack
  * @param src_sp the original user sp value
  * @param src_argv argv to copy from
- * @param ret_argc (total argc count)
- * @param ret_argv (alt)
+ * @param ret_argc  address of the argc
+ * @param ret_argv0 address of the argv0
  * @param ret_sp new sp value
  */
 void place_args(/*IN*/ uintptr_t src_sp,
                 /*IN*/ const char **src_argv,
-                /*OUT*/ int *ret_argc,
-                /*OUT*/ char ***ret_argv,
+                /*OUT*/ uintptr_t *ret_argc,
+                /*OUT*/ uintptr_t *ret_argv0,
                 /*OUT*/ uintptr_t *ret_sp) {
 
   log_println("[place_arg] src_sp:%x", src_sp);
+  if ((src_sp % SP_ALIGN) != 0) {
+    uart_println("[place arg] src_sp must be %d bytes aligned, get:%x",
+                 SP_ALIGN, src_sp);
+    FATAL("Check sp before calling this function");
+  }
 
   int nm_args = 0;
   while (src_argv[nm_args] != NULL) {
     log_println(" src_argv[%d](%x):`%s`", nm_args, src_argv[nm_args],
                 src_argv[nm_args]);
     nm_args++;
-  }
-
-  if (ret_argc != NULL) {
-    *ret_argc = nm_args;
   }
 
   // Save Arguments into kernel memory.
@@ -64,82 +66,72 @@ void place_args(/*IN*/ uintptr_t src_sp,
    * Save argv into user stack.
    *
    * High
-   * | "str2"  | <- `args_offset[2]` / old stack top
-   * | "str1"  | <- `args_offset[1]`
-   * | "str0"  | <- `args_offset[0]`
+   * |         | / old stack top (16 bytes aligned )
+   * | "str2"  | <- `args_offset[2]` (16 bytes aligned )
+   * |         |
+   * | "str1"  | <- `args_offset[1]` (16 bytes aligned )
+   * |         |
+   * | "str0"  | <- `args_offset[0]` (16 bytes aligned )
    * | argv[2] |
    * | argv[1] |
    * | argv[0] |
-   * |stack_top| <- new user stack
+   * | argc    | <- new stack top (16 bytes aligned )
    * Low
    */
 
-  // Calculate total size to store in user stack
-  // size is calculated in byte
-  size_t *args_offset = kalloc(sizeof(size_t) * nm_args);
-  size_t size_byte = 0, _size = 0;
-
-  // Size for **argv array
-  _size = sizeof(char **) * nm_args;
-  _size = align_up(_size, SP_ALIGN);
-  size_byte += _size;
-  args_offset[0] = size_byte;
-  log_println("[place_arg] size for argv array: %d(byte)", _size);
-
-  // Size for each argv string
-  for (int i = 0; i < nm_args; i++) {
-    _size = strlen(saved_args[i]) + 1;
-    _size = align_up(_size, SP_ALIGN);
-    size_byte += _size;
-    args_offset[i + 1] = size_byte;
-    log_println("[place_arg] size for src_argv[%d]: %d(byte)", i, _size);
-  }
-
-  for (int i = 0; i < nm_args; i++) {
-    log_println(" args_offset[%d] -> %d", i, args_offset[i]);
-  }
-
-  log_println("total bytes -> %d", size_byte);
-
-  // The new user sp value (byte-addressable)
-  {
-    size_t aligned = align_up(size_byte, SP_ALIGN);
-    log_println("[place arg] total bytes:%d, after alignment:%d", size_byte,
-                aligned);
-    size_byte = aligned;
-  }
-
-  // 1. sp grow from HIGH->LOW
-  // 2. sp point to an empty memory space
-  int base = SP_ALIGN;
-
   uintptr_t sp = src_sp;
-  sp -= size_byte;
-  log_println("[place arg] move sp(%x) -> sp(%x)", src_sp, sp);
+  size_t _size = 0;
+  uintptr_t *addrs = kalloc(sizeof(char *) * nm_args);
+  log_println("[place_arg] start copy, sp: %x", sp);
 
-  // Calculate directly in byte address
-  char **user_argv = (char **)(sp + base);
-  for (int i = 0; i < nm_args; i++) {
-    user_argv[i] = (char *)(sp + base + args_offset[i]);
+  // copy args
+  for (int i = nm_args - 1; i >= 0; i--) {
+    _size = (sizeof(char) * strlen(saved_args[i])) + 1;
+    _size = align_up(_size, SP_ALIGN);
+    sp -= _size;
+    log_println("[place_arg] size for src_argv[%d]: %d(byte), sp after:%x", i,
+                _size, sp);
+    addrs[i] = sp;
+    strcpy((char *)(sp), saved_args[i]);
   }
 
-  // Copy args to user stack (would overwrite existing data)
-  for (int i = 0; i < nm_args; i++) {
-    strcpy((char *)(sp + base + args_offset[i]), saved_args[i]);
-    log_println("[place arg] argv[%d](%x) written -> %s", i,
-                sp + base + args_offset[i], sp + base + args_offset[i]);
-    // log_println("src_argv[%d] => %x", i, saved_args[i]);
+  // Start of the argv array is 16 byte aligned
+  // we put the argv from back
+  int size_argv = ((sizeof(char **)) * nm_args);
+  int size_argc = sizeof(size_t);
+  int total_size = size_argv + size_argc;
+  if (total_size < align_up(total_size, 16)) {
+    int back_indent = align_up(total_size, 16) - total_size;
+    sp -= back_indent;
   }
 
-  if (ret_argv != NULL) {
-    *ret_argv = (char **)(sp + base);
+  // fillup argv array
+  for (int i = nm_args - 1; i >= 0; i--) {
+    _size = (sizeof(char **));
+    sp -= _size;
+    log_println("[place_arg] store pointer to argv[%d]: %d(byte), sp after:%x",
+                i, _size, sp);
+    // argv: pointer to char*
+    *(char **)sp = (char *)addrs[i];
   }
+  if (ret_argv0 != NULL) {
+    *ret_argv0 = sp;
+  }
+  kfree(addrs);
+
+  // place argc
+  _size = (sizeof(size_t));
+  sp -= _size;
+  log_println("[place_arg] store argc: %d(byte), sp after:%x", _size, sp);
+  *((size_t *)sp) = nm_args;
+  if (ret_argc != NULL) {
+    *ret_argc = sp;
+  }
+
   if (ret_sp != NULL) {
     *ret_sp = sp;
   }
-
   // Caution: need to be freed.
-  kfree(args_offset);
   for (int i = 0; i < nm_args; i++) {
     kfree(saved_args[i]);
   }
@@ -152,19 +144,45 @@ bool test_good() {
   char stack[400];
 
   uintptr_t src_sp = align_up((uintptr_t)&stack[350], SP_ALIGN);
+
   uintptr_t new_sp;
+  uintptr_t addr_argv0;
+  uintptr_t addr_argc;
 
-  char **new_argv;
-  int argc;
+  place_args(src_sp, (const char **)src_argv, &addr_argc, &addr_argv0, &new_sp);
 
-  place_args(src_sp, (const char **)src_argv, &argc, &new_argv, &new_sp);
-  assert((new_sp % SP_ALIGN) == 0);
-  assert(new_sp < src_sp);
-  assert(argc == 3);
+  char **new_argv = (char **)addr_argv0;
+  int argc = *(int *)addr_argc;
+
+  // uart_println("returned sp: %x", new_sp);
+  // uart_println("returned argc: %d(%x)", argc, addr_argc);
+  // for (int i = 0; i < argc; i++) {
+  //   uart_println("returned argv[%d]: (%x)", i, &new_argv[i]);
+  // }
+  if ((new_sp % SP_ALIGN) != 0) {
+    uart_println("Returned sp is not 16 byte aligned: %d", new_sp);
+    return false;
+  }
+  if (new_sp >= src_sp) {
+    uart_println("returned sp higher than given");
+    return false;
+  }
+  if (argc != 3) {
+    uart_println("Wrong argc :%d, expect:%d", argc, 3);
+    return false;
+  }
+
   for (size_t i = 0; i < argc; i++) {
-    assert((new_sp < (uintptr_t)new_argv[i]));
-    // sp point to an empty memory space
-    assert(((uintptr_t)new_argv[i] < (src_sp + SP_ALIGN)));
+    if (new_sp >= (uintptr_t)new_argv[i]) {
+      uart_println("argv[%d] (%x) is higher than new_sp:%x", i, &new_argv[i],
+                   new_sp);
+      return false;
+    }
+    if (0 != strcmp(new_argv[i], src_argv[i])) {
+      uart_println("wrong argv[%d]: %s, expect:%s", i, new_argv[i],
+                   src_argv[i]);
+      return false;
+    }
   }
   return true;
 }

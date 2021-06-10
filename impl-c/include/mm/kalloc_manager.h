@@ -1,10 +1,10 @@
 #pragma once
 
-#include "list.h"
 #include "mm/alloc.h"
-#include "mm/const.h"
 #include "mm/frame.h"
 #include "mm/startup.h"
+
+#include "list.h"
 #include <stdint.h>
 
 /**
@@ -25,17 +25,3 @@ typedef struct AllocationManager {
 // Statically linked to the heap space
 // because their lifetimes is equal to the system itself
 extern struct Frame Frames[1 << BUDDY_MAX_EXPONENT];
-
-// Allocate a  memory space to use in kernel space
-void *kalloc(int size);
-
-// Free a memory space
-void kfree(void *addr);
-
-// Initialize dynamic memory allocator
-void KAllocManager_init();
-
-void KAllocManager_show_status();
-
-// Run several allocation/free as an example
-void KAllocManager_run_example();

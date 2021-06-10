@@ -3,7 +3,7 @@
 
 #include "bool.h"
 #include "fs/vfs.h"
-#include "mm.h"
+#include "memory.h"
 #include "mm/frame.h"
 #include "string.h"
 #include "syscall.h"
@@ -47,7 +47,7 @@ int sys_fork(const struct trap_frame *tf) {
   // TODO: fix this (memory leak)
   // parent should free memory
   // parent should be collected after child
-  child->code = NULL;
+  // child->code = NULL;
 
   // Child return
   // direct to the exception return point

@@ -4,8 +4,8 @@
 #include "lib.h"
 #define MX_BUF_SIZE 100
 
-static char *itoa(int64_t val, int base);
-static size_t sputs(char *output, const char *input);
+char *itoa(int64_t val, int base);
+int sputs(char *output, const char *input);
 
 char *itoa(int64_t val, int base) {
   static char buf[64] = {0};
@@ -20,8 +20,8 @@ char *itoa(int64_t val, int base) {
   return &buf[i + 1];
 }
 
-size_t sputs(char *output, const char *input) {
-  size_t size = 0;
+int sputs(char *output, const char *input) {
+  int size = 0;
   while (*input) {
     *(output++) = *(input++);
     size++;
@@ -34,7 +34,7 @@ size_t sputs(char *output, const char *input) {
 void printf(char *fmt, ...) {
   int64_t i;
   char *s;
-  size_t size = 0;
+  int size = 0;
   char buf[MX_BUF_SIZE] = {};
 
   va_list arg;

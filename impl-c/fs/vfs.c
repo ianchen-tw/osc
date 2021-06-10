@@ -1,6 +1,6 @@
 #include "fs/vfs.h"
 
-#include "mm.h"
+#include "memory.h"
 #include "string.h"
 #include "uart.h"
 

@@ -1,7 +1,10 @@
+#include "memory.h"
+#include "mm/alloc.h"
+#include "mm/kalloc_manager.h"
+
 #include "bool.h"
 #include "list.h"
 #include "log.h"
-#include "mm.h"
 #include "uart.h"
 #include <stddef.h>
 

@@ -1,3 +1,3 @@
 #pragma once
-
-#define MMIO_BASE 0x3F000000
+#include "mm/vm.h"
+#define MMIO_BASE (KVA_START + 0x3F000000)

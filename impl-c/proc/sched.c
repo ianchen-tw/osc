@@ -1,8 +1,10 @@
 #include "proc/sched.h"
 #include "proc/task.h"
 
+#include "fatal.h"
 #include "list.h"
-#include "mm.h"
+#include "memory.h"
+#include "mm/vm.h"
 #include "uart.h"
 
 #include "config.h"
@@ -14,7 +16,6 @@ static const int _DO_LOG = 1;
 static const int _DO_LOG = 0;
 #endif
 
-// proc/sched.S
 void switch_to(struct task_struct *prev, struct task_struct *next);
 
 static void kill_zombies();
@@ -48,6 +49,7 @@ void task_schedule() {
       }
     }
     log_println("[schedule] switch thread %d->%d", cur->id, next->id);
+    set_pgd_low((uint64_t)next->page_table);
     switch_to(cur, next);
   }
 }
@@ -55,7 +57,7 @@ void task_schedule() {
 void idle() {
   while (1) {
     uart_println("idle scheduling...");
-    _wait();
+    // _wait();
     task_schedule();
     kill_zombies();
   }
